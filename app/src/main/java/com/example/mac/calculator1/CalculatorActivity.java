@@ -10,6 +10,7 @@ import android.text.Html;
 import android.util.StringBuilderPrinter;
 import android.view.View;
 import android.view.Window;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
@@ -98,6 +99,77 @@ public class CalculatorActivity extends Activity{
             //这里设置为false，是因为没有执行成功，还不能开启新的表达式求值
             mIsExcuteNow=false;
             return;
+        }
+        //执行成功了，设置标志为true，同时更新最后的表达式的内容为 表达式+"="+result
+        mIsExcuteNow=true;
+        mLastStr+="="+result;
+        mEditInput.setError(null);
+        //显示执行结果
+        setText();
+    }
+    /**
+     * 该类是自定义选项按钮单击事件监听器
+     */
+    private class OnButtonItemClickListener implements AdapterView.OnItemClickListener{
+        @Override
+        public void onItemClick(AdapterView<?>parent,View view,int position,long id){
+            String text=(String) parent.getAdapter().getItem(position);
+            if(text.equals("=")){
+                //为等号时直接调用该方法就好
+                executeExpression();
+            }else if(text.equals("back")){
+                //表示如果按下back键，表示删除一个字符
+                //如果最新的表达式长度为0，则需要把前面的表达式的最后部分赋值给最新的表达式
+                if(mLastStr.length()==0){
+                    //如果此时历史表达式的长度不为0，那么此时历史表达式必然以换行符结尾
+                    //如3+5=8<br/>
+                    if(mPreStr.length()!=0){
+                        //此时首先清除mPrestr的末尾换行符 即3+5=8
+                        mPreStr=mPreStr.substring(0,mPreStr.length()-newLine.length());
+                        mIsExcuteNow=true;
+                        //找到前一个换行符的位置
+                        int index=mPreStr.lastIndexOf(newLine);
+                        if(index==-1){
+                            //表示没有找到，即历史表达式只有一个3+5=8不含换行符就是没有找到
+                            mLastStr=mPreStr;
+                            mPreStr="";
+
+                        }else {
+                            //找到的话就是历史表达式的最后一个表达式赋值
+                            //比如历史表达式为3=3<?>3+5=8，就需要把3+5=8作为最新表达式
+                            mLastStr=mPreStr.substring(index+newLine.length(),mPreStr.length());
+                            mPreStr=mPreStr.substring(0,index);
+                        }
+                    }
+                }else {
+                    //如果更新后的表达式的长度不是1，则直接减掉一个字符就好了
+                    mLastStr=mLastStr.substring(0,mLastStr.length()-1);
+
+                }
+                //显示内容
+                setText();
+            }else if(text.equals("CE")){
+                //需要全部设置为空字符，并设置标识符为false，同时清空显示内容
+                mPreStr="";
+                mLastStr="";
+                mIsExcuteNow=false;
+                mEditInput.setText("");
+            }else{
+                //按下其他键的情况
+                if(mIsExcuteNow){
+                    //如果刚刚成功执行一个表达式，那么需要把当前表达式加到历史表达式后面并加换行符
+                    mPreStr+=mLastStr+newLine;
+                    //重置标识符为false
+                    mIsExcuteNow=false;
+                    //设置最新表达式的第一个字符为当前按钮按下的内容
+                    mLastStr=text;
+                }else {
+                    //否则直接在最新表达式后面添加内容就好了
+                    mLastStr+=text;
+                }
+                //更新内容
+                setText();
+            }
         }
     }
 }

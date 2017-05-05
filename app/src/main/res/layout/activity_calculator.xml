@@ -19,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:id="@id/grid_buttons"
+            android:id="@+id/grid_buttons"
             android:numColumns="4"
             android:layout_margin="10dp"
             android:verticalSpacing="10dp"
